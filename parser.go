@@ -16,8 +16,10 @@ var counter uint64
 
 type Venue struct {
     ID string `json:"_id"`
+    SID string `json:"sid"`
     Name string `json:"name_d"`
-    Vtype int  `json:"type"`
+    T string `json:"t"`
+    Vtype int  `json:"type"` // 2 -> workshop, 10 -> conf. 1/11 -> journal, 3/12 -> book
     Raw string `json:"raw"`
 }
 
@@ -77,12 +79,12 @@ func main() {
 
     f_articles := create_csv("articles.csv")
     f_authors := create_csv("authors.csv")
-    // f_conference := create_csv("conference.csv")
+    f_conference := create_csv("conference.csv")
     // f_edition := create_csv("edition.csv")
     f_journal := create_csv("journal.csv")
     f_keywords := create_csv("keywords.csv")
     // f_volume := create_csv("volume.csv")
-    // f_workshop := create_csv("workshop.csv")
+    f_workshop := create_csv("workshop.csv")
 
     rel_authored := create_csv("rel_authored.csv")
     // rel_belongs := create_csv("rel_belongs.csv")
@@ -93,12 +95,12 @@ func main() {
     handles := []*csv.Writer{
         f_articles,
         f_authors,
-        // f_conference,
+        f_conference,
         // f_edition,
         f_journal,
         f_keywords,
         // f_volume,
-        // f_workshop,
+        f_workshop,
         rel_authored,
         // rel_belongs,
         rel_cites,
@@ -122,11 +124,11 @@ func main() {
     loop:
     for dec.More() {
         select {
-        case <-sigc:
-            fmt.Println("Stopping")
-            break loop
+    case <-sigc:
+        fmt.Println("Stopping")
+        break loop
         default:
-        }
+    }
 
         var a Article
         // decode an array value (Message)
@@ -137,6 +139,9 @@ func main() {
 
         art_id, _ := getId(a.ID)
         for _, author := range a.Authors {
+            if author.ID == "" {
+                continue
+            }
             auth_id, done := getId(author.ID);
             if  !done {
                 f_authors.Write([]string{
@@ -145,19 +150,69 @@ func main() {
                 })
             }
             rel_authored.Write([]string{
-                auth_id,
                 art_id,
+                auth_id,
             })
+        }
+
+        if a.Venue.ID == "" {
+            a.Venue.ID = a.Venue.SID
+        }
+
+        if a.Venue.ID == "" {
+            continue
         }
 
         venue_id, done := getId(a.Venue.ID)
         if !done {
-            f_journal.Write([]string{
-                venue_id,
-                a.Venue.Name,
-                a.Venue.Raw,
-                strconv.Itoa(a.Venue.Vtype),
-            })
+            if a.Venue.SID != "" {
+                if a.Venue.T == "J" {
+                    f_journal.Write([]string{
+                        venue_id,
+                        a.Venue.Name,
+                        a.Venue.Raw,
+                    })
+
+                } else if a.Venue.T == "C" {
+                    f_conference.Write([]string{
+                        venue_id,
+                        a.Venue.Name,
+                        a.Venue.Raw,
+                    })
+
+                } else {
+                    f_workshop.Write([]string{
+                        venue_id,
+                        a.Venue.Name,
+                        a.Venue.Raw,
+                    })
+
+                }
+            } else {
+                switch a.Venue.Vtype {
+            case 2: //workshop
+                    f_workshop.Write([]string{
+                        venue_id,
+                        a.Venue.Name,
+                        a.Venue.Raw,
+                    })
+            case 10: //conference
+                    f_conference.Write([]string{
+                        venue_id,
+                        a.Venue.Name,
+                        a.Venue.Raw,
+                    })
+            case 3, 12: //book
+                default: //journal
+                    // case 0, 1, 11: //journal
+                    f_journal.Write([]string{
+                        venue_id,
+                        a.Venue.Name,
+                        a.Venue.Raw,
+                    })
+            }
+
+            }
         }
         rel_published.Write([]string{ art_id, venue_id })
 
