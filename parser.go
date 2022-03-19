@@ -81,6 +81,8 @@ const (
 	Workshop
 )
 
+var venue_type map[string]VenueType
+
 func process_venue(v *Venue, year int, volume *string, isbn *string, city_names []string,
 	f_journal *csv.Writer, f_conference *csv.Writer, f_workshop *csv.Writer,
 	f_edition *csv.Writer, f_volume *csv.Writer, rel_belongs *csv.Writer,
@@ -99,16 +101,19 @@ func process_venue(v *Venue, year int, volume *string, isbn *string, city_names 
 
 	venueType := Journal // Default to journal
 
-	if v.T == "C" || v.Vtype == 10 {
-		venueType = Conference
-	} else if v.Vtype == 2 {
-		venueType = Workshop
-	}
-
 	venue_id, done = getId(v.ID)
-	// If venue does not exist, create it
-	if !done {
+	if done { // Get venue type from map
+		venueType = venue_type[venue_id]
+	} else { // If venue does not exist, create it
 		var f_venue *csv.Writer
+
+		// Determine venue type
+		if v.T == "C" || v.Vtype == 10 {
+			venueType = Conference
+		} else if v.Vtype == 2 {
+			venueType = Workshop
+		}
+
 		switch venueType {
 		case Journal:
 			f_venue = f_journal
@@ -119,6 +124,10 @@ func process_venue(v *Venue, year int, volume *string, isbn *string, city_names 
 		default:
 			log.Fatalf("Error processing venue %v", v)
 		}
+
+		// Register venue type
+		venue_type[venue_id] = venueType
+
 		f_venue.Write([]string{
 			venue_id, v.Name, v.Raw,
 		})
@@ -159,7 +168,9 @@ func process_venue(v *Venue, year int, volume *string, isbn *string, city_names 
 
 func main() {
 	counter = 0
-	ids = map[string]string{}
+	ids = make(map[string]string)
+	venue_type = make(map[string]VenueType)
+
 	f, _ := os.Open("input.json")
 	dec := json.NewDecoder(f)
 
