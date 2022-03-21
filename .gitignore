@@ -1,6 +1,7 @@
 *.csv
 *.json
 *.zip
+!*_header.csv
 import.report
 /parser
 /add-reviews
