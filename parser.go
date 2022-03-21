@@ -206,7 +206,7 @@ func main() {
 		rel_published,
 	}
 
-	f_cities, _ := os.Open("cities")
+	f_cities, _ := os.Open("cities.txt")
 	var city_names []string
 	scanner := bufio.NewScanner(f_cities)
 	for scanner.Scan() {

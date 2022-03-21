@@ -1,0 +1,79 @@
+Ahmedabad
+Alexandria
+Atlanta
+Baghdad
+Bangalore
+Bangkok
+Barcelona
+Beijing
+Belo Horizonte
+Bogotá
+Buenos Aires
+Cairo
+Chengdu
+Chennai
+Chicago
+Chongqing
+Dalian
+Dallas
+Dar es Salaam
+Delhi
+Dhaka
+Dongguan
+Foshan
+Fukuoka
+Guadalajara
+Guangzhou
+Hangzhou
+Harbin
+Ho Chi Minh
+Hong Kong
+Houston
+Hyderabad
+Istanbul
+Jakarta
+Jinan
+Karachi
+Khartoum
+Kinshasa
+Kolkata
+Kuala Lumpur
+Lahore
+Lima
+London
+Los Angeles
+Luanda
+Madrid
+Manila
+Mexico City
+Miami
+Moscow
+Mumbai
+Nagoya
+Nanjing
+New York
+Osaka
+Paris
+Philadelphia
+Pune
+Qingdao
+Rio de Janeiro
+Riyadh
+Saint Petersburg
+Santiago
+Seoul
+Shanghai
+Shenyang
+Shenzhen
+Singapore
+Surat
+Suzhou
+São Paulo
+Tehran
+Tianjin
+Tokyo
+Toronto
+Washington
+Wuhan
+Xi'an
+Yangon
