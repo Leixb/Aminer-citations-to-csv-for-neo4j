@@ -2,13 +2,22 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"log"
 	"math/rand"
 	"os"
 )
 
 func main() {
-    f, _ := os.Open("rel_authored.csv")
+    var input, output string
+    flag.StringVar(&input, "input file", "data/rel_authored.csv", "File containing the article -> author relation in csv format")
+    flag.StringVar(&output, "output file", "data/rel_authored.csv", "Output file where the review relation will be saved")
+    flag.Parse()
+
+    f, err := os.Open(input)
+    if err != nil {
+        log.Fatal(err)
+    }
     reader := csv.NewReader(f)
 
     reader.Comma = ';'
@@ -42,8 +51,12 @@ func main() {
         i++
     }
 
-    fr, _ := os.Create("rel_reviews.csv")
+    fr, err := os.Create(output)
+    if err != nil {
+        log.Fatal(err)
+    }
     w := csv.NewWriter(fr)
+    defer w.Flush()
     w.Comma = ';';
 
     for article := range article_authors {
@@ -58,5 +71,4 @@ func main() {
             w.Write([]string{ article, reviewer })
         }
     }
-    w.Flush()
 }
