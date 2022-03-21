@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"encoding/csv"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"syscall"
 )
@@ -65,8 +67,11 @@ func getId(value string) (string, bool) {
 	return scount, false
 }
 
-func create_csv(filename string) *csv.Writer {
-	f, _ := os.Create(filename)
+func create_csv(folder string, filename string) *csv.Writer {
+	f, err := os.Create(filepath.Join(folder, filename))
+	if err != nil {
+		log.Fatal("Failed creating file", filename, "in folder", folder)
+	}
 	w := csv.NewWriter(f)
 	w.Comma = ';'
 
@@ -96,8 +101,7 @@ func process_venue(v *Venue, year int, volume *string, isbn *string, city_names 
 	}
 
 	var done bool
-	var venue_id string
-	var pub_id string
+    var venue_id, pub_id string
 
 	venueType := Journal // Default to journal
 
@@ -167,46 +171,51 @@ func process_venue(v *Venue, year int, volume *string, isbn *string, city_names 
 }
 
 func main() {
+	var filename, output, cities_file string
+	flag.StringVar(&filename, "input", "input.json", "JSON file with the data to convert")
+	flag.StringVar(&output, "output", "data", "Folder where all the csv files will be saved")
+	flag.StringVar(&cities_file, "cities", "cities.txt", "File containting all the cities to add")
+	flag.Parse()
+
 	counter = 0
 	ids = make(map[string]string)
 	venue_type = make(map[string]VenueType)
 
-	f, _ := os.Open("input.json")
-	dec := json.NewDecoder(f)
-
-	f_articles := create_csv("articles.csv")
-	f_authors := create_csv("authors.csv")
-	f_conference := create_csv("conference.csv")
-	f_edition := create_csv("edition.csv")
-	f_journal := create_csv("journal.csv")
-	f_keywords := create_csv("keywords.csv")
-	f_volume := create_csv("volume.csv")
-	f_workshop := create_csv("workshop.csv")
-
-	rel_authored := create_csv("rel_authored.csv")
-	rel_belongs := create_csv("rel_belongs.csv")
-	rel_cites := create_csv("rel_cites.csv")
-	rel_keywords := create_csv("rel_keywords.csv")
-	rel_published := create_csv("rel_published.csv")
-
-	handles := []*csv.Writer{
-		f_articles,
-		f_authors,
-		f_conference,
-		f_edition,
-		f_journal,
-		f_keywords,
-		f_volume,
-		f_workshop,
-
-		rel_authored,
-		rel_belongs,
-		rel_cites,
-		rel_keywords,
-		rel_published,
+	if err := os.MkdirAll(output, 0755); err != nil {
+		log.Fatal("Output directory file creation failed on", output)
 	}
 
-	f_cities, _ := os.Open("cities.txt")
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal("Failed to open input file:", filename)
+	}
+	dec := json.NewDecoder(f)
+
+	f_articles := create_csv(output, "articles.csv")
+	f_authors := create_csv(output, "authors.csv")
+	f_conference := create_csv(output, "conference.csv")
+	f_edition := create_csv(output, "edition.csv")
+	f_journal := create_csv(output, "journal.csv")
+	f_keywords := create_csv(output, "keywords.csv")
+	f_volume := create_csv(output, "volume.csv")
+	f_workshop := create_csv(output, "workshop.csv")
+
+	rel_authored := create_csv(output, "rel_authored.csv")
+	rel_belongs := create_csv(output, "rel_belongs.csv")
+	rel_cites := create_csv(output, "rel_cites.csv")
+	rel_keywords := create_csv(output, "rel_keywords.csv")
+	rel_published := create_csv(output, "rel_published.csv")
+
+	for _, handle := range []*csv.Writer{
+		f_articles, f_authors, f_conference, f_edition, f_journal, f_keywords, f_volume, f_workshop,
+		rel_authored, rel_belongs, rel_cites, rel_keywords, rel_published} {
+		defer handle.Flush()
+	}
+
+	f_cities, err := os.Open(cities_file)
+	if err != nil {
+		log.Fatal("Failed to open city file list", cities_file)
+	}
 	var city_names []string
 	scanner := bufio.NewScanner(f_cities)
 	for scanner.Scan() {
@@ -222,17 +231,16 @@ func main() {
 		syscall.SIGQUIT)
 
 	// read open bracket
-	_, err := dec.Token()
+	_, err = dec.Token()
 	if err != nil {
 		log.Fatal(err)
 	}
 	// while the array contains values
-loop:
 	for dec.More() {
 		select {
 		case <-sigc:
 			fmt.Println("Stopping")
-			break loop
+			return
 		default:
 		}
 
@@ -292,8 +300,5 @@ loop:
 			a.Doi,
 			strconv.Itoa(a.Year),
 		})
-	}
-	for _, handle := range handles {
-		handle.Flush()
 	}
 }
