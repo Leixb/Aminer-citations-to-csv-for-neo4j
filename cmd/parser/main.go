@@ -290,6 +290,10 @@ func main() {
 
 		for _, reference := range a.References {
 			ref_id, _ := getId(reference)
+            // Skip self references
+            if ref_id == art_id {
+                continue
+            }
 			rel_cites.Write([]string{art_id, ref_id})
 		}
 
