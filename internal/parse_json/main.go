@@ -262,24 +262,17 @@ func GenerateFiles(filename, output, cities_file string) {
 				})
 
                 if author.Org != "" {
-                    var orgid string
-                    if author.OrgID != "" {
-                        orgid = author.OrgID
-                    } else if author.GID != "" {
-                        orgid = author.GID
-                    } else {
-                        orgid = "&" + author.Org
-                    }
+                    name, _, _ := strings.Cut(author.Org, ",")
 
-                    orgid, done := getId(orgid)
+                    orgid, done := getId(strings.ToLower(name))
                     if !done {
                         if strings.HasPrefix(author.Org, "Uni") {
                             f_university.Write([]string{
-                                orgid, author.Org,
+                                orgid, name,
                             })
                         } else {
                             f_company.Write([]string{
-                                orgid, author.Org,
+                                orgid, name,
                             })
                         }
                     }
