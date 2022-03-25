@@ -93,19 +93,16 @@ func process_venue(v *Venue, year int, volume *string, isbn *string, city_names 
 	f_edition *csv.Writer, f_volume *csv.Writer, rel_belongs *csv.Writer,
 ) (string, bool) {
 	// Make sure ID is valid
-	if v.ID == "" {
-		if v.SID == "" {
-			return "", false
-		}
-		v.ID = "!" + v.SID
-	}
-
 	var done bool
     var venue_id, pub_id string
 
 	venueType := Journal // Default to journal
 
-	venue_id, done = getId(v.ID)
+    if v.Name == "" {
+        v.Name = v.Raw
+    }
+
+	venue_id, done = getId(v.Name)
 	if done { // Get venue type from map
 		venueType = venue_type[venue_id]
 	} else { // If venue does not exist, create it
@@ -133,7 +130,7 @@ func process_venue(v *Venue, year int, volume *string, isbn *string, city_names 
 		venue_type[venue_id] = venueType
 
 		f_venue.Write([]string{
-			venue_id, v.Name, v.Raw,
+			venue_id, v.Name,
 		})
 	}
 
