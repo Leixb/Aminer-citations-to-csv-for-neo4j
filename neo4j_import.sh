@@ -7,6 +7,7 @@ neo4j-admin import \
     --delimiter ";" \
     --array-delimiter "|" \
     --id-type INTEGER \
+    --multiline-fields=true \
     --nodes=paper="articles_header.csv,articles.csv" \
     --nodes=author="authors_header.csv,authors.csv" \
     --nodes=journal:venue="journal_header.csv,journal.csv" \
@@ -15,10 +16,13 @@ neo4j-admin import \
     --nodes=keyword="keywords_header.csv,keywords.csv" \
     --nodes=edition:publication="edition_header.csv,edition.csv" \
     --nodes=volume:publication="volume_header.csv,volume.csv" \
+    --nodes=university:organization="organization_header.csv,university.csv" \
+    --nodes=company:organization="organization_header.csv,company.csv" \
     --relationships=published_in="rel_published_header.csv,rel_published.csv" \
     --relationships=authored_by="rel_authored_header.csv,rel_authored.csv" \
     --relationships=has_topic="rel_keywords_header.csv,rel_keywords.csv" \
     --relationships=cites="rel_cites_header.csv,rel_cites.csv" \
     --relationships=reviews="rel_reviews_header.csv,rel_reviews.csv" \
     --relationships=from="rel_belongs_header.csv,rel_belongs.csv" \
+    --relationships=affiliated="rel_affiliated_header.csv,rel_affiliated.csv" \
     "$@"
