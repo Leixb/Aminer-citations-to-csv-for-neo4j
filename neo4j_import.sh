@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd ~/Documents/json_stream_parser/data
+cd "$(dirname "$0")/data"
 
 neo4j-admin import \
     --database=dblp.db \
