@@ -29,6 +29,16 @@ However, the parser only needs to run once, since creating all the CSV files at
 once was more efficient than parsing the file twice and generating slightly
 different outputs.
 
+## Program structure
+
+The important parts of the program are the `json_parser.go` and
+`add_reviews.go`.
+
+- `main.go`: Basic CLI interface.
+- `json_parser.go`: Main parser, reads the data and generates all the CSV files.
+- `add_reviews.go`: Adds fake reviews relationship data.
+- `id_manager.go`: Manages unique ids for parsed elements.
+
 ### Note
 
 If you use the original JSON file from aminer contains mongodb extended JSON v2
