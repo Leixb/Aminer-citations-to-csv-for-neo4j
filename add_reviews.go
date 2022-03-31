@@ -76,7 +76,7 @@ func AddReviewsEdge(input, output_folder string) {
 
 	article_authors, auth_list := getRelationships(input)
 
-	w := create_csv(output_folder, "rel_reviews")
+	w := create_csv(output_folder, "rel_reviews.csv")
 	defer w.Flush()
 
 	for article := range article_authors {
@@ -95,13 +95,13 @@ func AddReviewsNode(input, output_folder string) {
 
 	article_authors, auth_list := getRelationships(input)
 
-	rel_gives_review := create_csv(output_folder, "rel_gives_review")
+	rel_gives_review := create_csv(output_folder, "rel_gives_review.csv")
 	defer rel_gives_review.Flush()
 
-	rel_reviewed_in := create_csv(output_folder, "rel_reviewed_in")
+	rel_reviewed_in := create_csv(output_folder, "rel_reviewed_in.csv")
 	defer rel_reviewed_in.Flush()
 
-	reviews := create_csv(output_folder, "reviews")
+	reviews := create_csv(output_folder, "reviews.csv")
 	defer reviews.Flush()
 
 	for article := range article_authors {
