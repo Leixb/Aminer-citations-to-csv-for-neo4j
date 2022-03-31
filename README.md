@@ -1,4 +1,4 @@
-# DBLP-Citation-network V13 converter for neo4j
+# AMiner Citation-network V13 importer for neo4j
 
 This is a small go program to convert the data from [aminer][1] to CSV
 so that they can be imported with `neo4j-admin import`. This was used for
