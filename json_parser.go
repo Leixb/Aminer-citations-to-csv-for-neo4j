@@ -40,9 +40,9 @@ type Paper struct {
 type Author struct {
 	ID    string `json:"_id"`
 	Name  string `json:"name"`
-    Org   string `json:"org"`
-    OrgID string `json:"orgid"`
-    GID   string `json:"gid"`
+	Org   string `json:"org"`
+	OrgID string `json:"orgid"`
+	GID   string `json:"gid"`
 }
 
 type Venue struct {
@@ -83,8 +83,8 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 	f_keywords := create_csv(output_folder, "keywords.csv")
 	f_volume := create_csv(output_folder, "volume.csv")
 	f_workshop := create_csv(output_folder, "workshop.csv")
-    f_university := create_csv(output_folder, "university.csv")
-    f_company := create_csv(output_folder, "company.csv")
+	f_university := create_csv(output_folder, "university.csv")
+	f_company := create_csv(output_folder, "company.csv")
 
 	rel_authored := create_csv(output_folder, "rel_authored.csv")
 	rel_belongs := create_csv(output_folder, "rel_belongs.csv")
@@ -150,26 +150,26 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 					author.Name,
 				})
 
-                if author.Org != "" {
-                    name, _, _ := strings.Cut(author.Org, ",")
+				if author.Org != "" {
+					name, _, _ := strings.Cut(author.Org, ",")
 
-                    orgid, done := getId(strings.ToLower(name))
-                    if !done {
-                        if strings.HasPrefix(author.Org, "Uni") {
-                            f_university.Write([]string{
-                                orgid, name,
-                            })
-                        } else {
-                            f_company.Write([]string{
-                                orgid, name,
-                            })
-                        }
-                    }
+					orgid, done := getId(strings.ToLower(name))
+					if !done {
+						if strings.HasPrefix(author.Org, "Uni") {
+							f_university.Write([]string{
+								orgid, name,
+							})
+						} else {
+							f_company.Write([]string{
+								orgid, name,
+							})
+						}
+					}
 
-                    rel_affiliated.Write([]string{
-                        auth_id, orgid,
-                    })
-                }
+					rel_affiliated.Write([]string{
+						auth_id, orgid,
+					})
+				}
 			}
 			rel_authored.Write([]string{
 				art_id,
@@ -198,10 +198,10 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 
 		for _, reference := range paper.References {
 			ref_id, _ := getId(reference)
-            // Skip self references
-            if ref_id == art_id {
-                continue
-            }
+			// Skip self references
+			if ref_id == art_id {
+				continue
+			}
 			rel_cites.Write([]string{art_id, ref_id})
 		}
 
@@ -222,13 +222,13 @@ func process_venue(v *Venue, year int, volume, isbn *string, city_names []string
 ) (string, bool) {
 	// Make sure ID is valid
 	var done bool
-    var venue_id, pub_id string
+	var venue_id, pub_id string
 
 	venueType := Journal // Default to journal
 
-    if v.Name == "" {
-        v.Name = v.Raw
-    }
+	if v.Name == "" {
+		v.Name = v.Raw
+	}
 
 	venue_id, done = getId(v.Name)
 	if done { // Get venue type from map
@@ -294,4 +294,3 @@ func process_venue(v *Venue, year int, volume, isbn *string, city_names []string
 	return pub_id, true
 
 }
-
