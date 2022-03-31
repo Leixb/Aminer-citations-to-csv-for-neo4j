@@ -32,7 +32,7 @@ neo4j-admin import \
     --nodes=volume:publication="volume_header.csv,volume.csv" \
     --relationships=published_in="rel_published_header.csv,rel_published.csv" \
     --relationships=authored_by="rel_authored_header.csv,rel_authored.csv" \
-    --relationships=has_topic="rel_keywords_header.csv,rel_keywords.csv" \
+    --relationships=about="rel_keywords_header.csv,rel_keywords.csv" \
     --relationships=cites="rel_cites_header.csv,rel_cites.csv" \
     --relationships=from="rel_belongs_header.csv,rel_belongs.csv" \
     --relationships=reviews="rel_reviews_header.csv,rel_reviews.csv" \
