@@ -113,9 +113,9 @@ func AddReviewsNode(input, output_folder string) {
 		rev_id := strconv.FormatUint(counter, 10)
 
 		// Set approved with 80% probability
-		approved := "1"
+		approved := "true"
 		if rand.Float32() > 0.8 {
-			approved = "0"
+			approved = "false"
 		}
 
 		reviews.Write([]string{rev_id, "PLACEHOLDER TEXT", approved})
