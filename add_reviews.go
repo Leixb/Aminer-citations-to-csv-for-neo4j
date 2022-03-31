@@ -84,7 +84,7 @@ func AddReviewsEdge(input, output_folder string) {
 		n := 3 + rand.Intn(2)
 
 		for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
-			w.Write([]string{article, reviewer})
+			w.Write([]string{reviewer, article})
 		}
 	}
 }
