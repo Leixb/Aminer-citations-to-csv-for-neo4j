@@ -9,31 +9,10 @@ import (
 	"math/rand"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
 )
-
-var ids map[string]string
-var counter uint64
-
-type Venue struct {
-	ID    string `json:"_id"`
-	SID   string `json:"sid"`
-	Name  string `json:"name_d"`
-	T     string `json:"t"`
-	Vtype int    `json:"type"` // 2 -> workshop, 10 -> conf. 1/11 -> journal, 3/12 -> book
-	Raw   string `json:"raw"`
-}
-
-type Author struct {
-	ID    string `json:"_id"`
-	Name  string `json:"name"`
-    Org   string `json:"org"`
-    OrgID string `json:"orgid"`
-    GID   string `json:"gid"`
-}
 
 type Paper struct {
 	ID         string   `json:"_id"`
@@ -58,27 +37,21 @@ type Paper struct {
 	References []string `json:"references"`
 }
 
-func getId(value string) (string, bool) {
-	if val, ok := ids[value]; ok {
-		return val, true
-	}
-
-	counter++
-	scount := strconv.FormatUint(counter, 10)
-	ids[value] = scount
-
-	return scount, false
+type Author struct {
+	ID    string `json:"_id"`
+	Name  string `json:"name"`
+    Org   string `json:"org"`
+    OrgID string `json:"orgid"`
+    GID   string `json:"gid"`
 }
 
-func create_csv(folder string, filename string) *csv.Writer {
-	f, err := os.Create(filepath.Join(folder, filename))
-	if err != nil {
-		log.Fatal("Failed creating file", filename, "in folder", folder)
-	}
-	w := csv.NewWriter(f)
-	w.Comma = ';'
-
-	return w
+type Venue struct {
+	ID    string `json:"_id"`
+	SID   string `json:"sid"`
+	Name  string `json:"name_d"`
+	T     string `json:"t"`
+	Vtype int    `json:"type"` // 2 -> workshop, 10 -> conf. 1/11 -> journal, 3/12 -> book
+	Raw   string `json:"raw"`
 }
 
 type VenueType int
@@ -89,92 +62,8 @@ const (
 	Workshop
 )
 
-var venue_type map[string]VenueType
-
-func process_venue(v *Venue, year int, volume, isbn *string, city_names []string,
-	f_journal, f_conference, f_workshop,
-	f_edition, f_volume, rel_belongs *csv.Writer,
-) (string, bool) {
-	// Make sure ID is valid
-	var done bool
-    var venue_id, pub_id string
-
-	venueType := Journal // Default to journal
-
-    if v.Name == "" {
-        v.Name = v.Raw
-    }
-
-	venue_id, done = getId(v.Name)
-	if done { // Get venue type from map
-		venueType = venue_type[venue_id]
-	} else { // If venue does not exist, create it
-		var f_venue *csv.Writer
-
-		// Determine venue type
-		if v.T == "C" || v.Vtype == 10 {
-			venueType = Conference
-		} else if v.Vtype == 2 {
-			venueType = Workshop
-		}
-
-		switch venueType {
-		case Journal:
-			f_venue = f_journal
-		case Conference:
-			f_venue = f_conference
-		case Workshop:
-			f_venue = f_workshop
-		default:
-			log.Fatalf("Error processing venue %v", v)
-		}
-
-		// Register venue type
-		venue_type[venue_id] = venueType
-
-		f_venue.Write([]string{
-			venue_id, v.Name,
-		})
-	}
-
-	switch venueType {
-	case Journal:
-		if pub_id, done = getId(fmt.Sprintf("%s-%d-%s", venue_id, year, *volume)); !done {
-			f_volume.Write([]string{
-				pub_id, strconv.Itoa(year), *volume, *isbn,
-			})
-		}
-	case Conference:
-		if pub_id, done = getId(fmt.Sprintf("%s-%d-C", venue_id, year)); !done {
-			f_edition.Write([]string{
-				pub_id, strconv.Itoa(year), city_names[rand.Intn(len(city_names))],
-			})
-		}
-	case Workshop:
-		if pub_id, done = getId(fmt.Sprintf("%s-%d-W", venue_id, year)); !done {
-			f_edition.Write([]string{
-				pub_id, strconv.Itoa(year), city_names[rand.Intn(len(city_names))],
-			})
-		}
-	default:
-		log.Fatalf("Error processing venue %v", v)
-	}
-
-	if !done {
-		rel_belongs.Write([]string{
-			pub_id, venue_id,
-		})
-	}
-
-	return pub_id, true
-
-}
-
+// Adds all the information of the papers to the csv files
 func GenerateFiles(filename, output_folder, cities_file string) {
-
-	counter = 0
-	ids = make(map[string]string)
-	venue_type = make(map[string]VenueType)
 
 	if err := os.MkdirAll(output_folder, 0755); err != nil {
 		log.Fatal("Output directory file creation failed on", output_folder)
@@ -325,3 +214,84 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 		})
 	}
 }
+
+// Adds all the information of the venue to the csv files
+func process_venue(v *Venue, year int, volume, isbn *string, city_names []string,
+	f_journal, f_conference, f_workshop,
+	f_edition, f_volume, rel_belongs *csv.Writer,
+) (string, bool) {
+	// Make sure ID is valid
+	var done bool
+    var venue_id, pub_id string
+
+	venueType := Journal // Default to journal
+
+    if v.Name == "" {
+        v.Name = v.Raw
+    }
+
+	venue_id, done = getId(v.Name)
+	if done { // Get venue type from map
+		venueType = venue_type[venue_id]
+	} else { // If venue does not exist, create it
+		var f_venue *csv.Writer
+
+		// Determine venue type
+		if v.T == "C" || v.Vtype == 10 {
+			venueType = Conference
+		} else if v.Vtype == 2 {
+			venueType = Workshop
+		}
+
+		switch venueType {
+		case Journal:
+			f_venue = f_journal
+		case Conference:
+			f_venue = f_conference
+		case Workshop:
+			f_venue = f_workshop
+		default:
+			log.Fatalf("Error processing venue %v", v)
+		}
+
+		// Register venue type
+		venue_type[venue_id] = venueType
+
+		f_venue.Write([]string{
+			venue_id, v.Name,
+		})
+	}
+
+	switch venueType {
+	case Journal:
+		if pub_id, done = getId(fmt.Sprintf("%s-%d-%s", venue_id, year, *volume)); !done {
+			f_volume.Write([]string{
+				pub_id, strconv.Itoa(year), *volume, *isbn,
+			})
+		}
+	case Conference:
+		if pub_id, done = getId(fmt.Sprintf("%s-%d-C", venue_id, year)); !done {
+			f_edition.Write([]string{
+				pub_id, strconv.Itoa(year), city_names[rand.Intn(len(city_names))],
+			})
+		}
+	case Workshop:
+		if pub_id, done = getId(fmt.Sprintf("%s-%d-W", venue_id, year)); !done {
+			f_edition.Write([]string{
+				pub_id, strconv.Itoa(year), city_names[rand.Intn(len(city_names))],
+			})
+		}
+	default:
+		log.Fatalf("Error processing venue %v", v)
+	}
+
+	if !done {
+		rel_belongs.Write([]string{
+			pub_id, venue_id,
+		})
+	}
+
+	return pub_id, true
+
+}
+

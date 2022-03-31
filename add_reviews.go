@@ -5,11 +5,13 @@ import (
 	"log"
 	"math/rand"
 	"os"
+    "strconv"
 )
 
-func AddReviews(input, output string) {
+type Set map[string]bool
 
-    f, err := os.Open(input)
+func getRelationships(authored_file string) (map[string]Set, []string) {
+    f, err := os.Open(authored_file)
     if err != nil {
         log.Fatal(err)
     }
@@ -22,16 +24,18 @@ func AddReviews(input, output string) {
         log.Fatal(err)
     }
 
-    article_authors := make(map[string]map[string]bool)
+    // For each article save a set of its authors
+    article_authors := make(map[string]Set)
 
-    authors := make(map[string]bool)
+    // Additionally, keep a set of all authors
+    authors := make(Set)
 
     for _, lines := range lines {
         article := lines[0]
         author := lines[1]
 
         if article_authors[article] == nil {
-            article_authors[article] = make(map[string]bool)
+            article_authors[article] = make(Set)
         }
 
         article_authors[article][author] = true
@@ -40,30 +44,86 @@ func AddReviews(input, output string) {
 
     auth_list := make([]string, len(authors))
 
+    // Convert the author set to a list so that we can access randomly
     i := 0
     for k := range authors {
         auth_list[i] = k
         i++
     }
 
-    fr, err := os.Create(output)
-    if err != nil {
-        log.Fatal(err)
+    return article_authors, auth_list
+}
+
+func getReviewers(author_list []string, article_authors Set, n int) []string {
+    result := make([]string, n)
+    for i := 0; i < n; i++ {
+        var reviewer string
+        for { // Make sure the reviewer is not one of the authors
+            reviewer = author_list[rand.Intn(len(author_list))]
+            if !article_authors[reviewer] {
+                break
+            }
+        }
+        result[i] = reviewer
     }
-    w := csv.NewWriter(fr)
+
+    return result
+}
+
+
+// Adds fake reviews as a relationship. Making sure the reviewers are not
+// the paper authors.
+func AddReviewsEdge(input, output_folder string) {
+
+    article_authors, auth_list := getRelationships(input)
+
+    w := create_csv(output_folder, "rel_reviews")
     defer w.Flush()
-    w.Comma = ';';
 
     for article := range article_authors {
-        for i := 0; i < 3 + rand.Intn(2); i++ {
-            var reviewer string
-            for {
-                reviewer = auth_list[rand.Intn(len(auth_list))]
-                if !article_authors[article][reviewer] {
-                    break
-                }
-            }
+        // Add between 3 and 5 reviewers for each paper
+        n := 3 + rand.Intn(2)
+
+        for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
             w.Write([]string{ article, reviewer })
+        }
+    }
+}
+
+// Adds fake reviews as a relationship. Making sure the reviewers are not
+// the paper authors.
+func AddReviewsNode(input, output_folder string) {
+
+    article_authors, auth_list := getRelationships(input)
+
+    rel_gives_review := create_csv(output_folder, "rel_gives_review")
+    defer rel_gives_review.Flush()
+
+    rel_reviewed_in := create_csv(output_folder, "rel_reviewed_in")
+    defer rel_reviewed_in.Flush()
+
+    reviews := create_csv(output_folder, "reviews")
+    defer reviews.Flush()
+
+    for article := range article_authors {
+        // Add between 3 and 5 reviewers for each paper
+        n := 3 + rand.Intn(2)
+
+        // create review node
+        counter ++
+	    rev_id := strconv.FormatUint(counter, 10)
+
+        // Set approved with 80% probability
+        approved := "1"
+        if rand.Float32() > 0.8 {
+            approved = "0"
+        }
+
+        reviews.Write([]string{rev_id , "PLACEHOLDER TEXT", approved})
+
+        for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
+            rel_gives_review.Write([]string{ reviewer, rev_id })
+            rel_reviewed_in.Write([]string{ article, rev_id })
         }
     }
 }
