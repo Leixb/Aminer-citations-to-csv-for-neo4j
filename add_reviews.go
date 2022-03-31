@@ -120,10 +120,10 @@ func AddReviewsNode(input, output_folder string) {
         }
 
         reviews.Write([]string{rev_id , "PLACEHOLDER TEXT", approved})
+        rel_reviewed_in.Write([]string{ article, rev_id })
 
         for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
             rel_gives_review.Write([]string{ reviewer, rev_id })
-            rel_reviewed_in.Write([]string{ article, rev_id })
         }
     }
 }
