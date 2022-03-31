@@ -22,7 +22,10 @@ neo4j-admin import \
     --relationships=authored_by="rel_authored_header.csv,rel_authored.csv" \
     --relationships=has_topic="rel_keywords_header.csv,rel_keywords.csv" \
     --relationships=cites="rel_cites_header.csv,rel_cites.csv" \
-    --relationships=reviews="rel_reviews_header.csv,rel_reviews.csv" \
     --relationships=from="rel_belongs_header.csv,rel_belongs.csv" \
     --relationships=affiliated="rel_affiliated_header.csv,rel_affiliated.csv" \
+    --nodes=review="reviews_header.csv,reviews.csv" \
+    --relationships=reviewed_in="rel_reviewed_in_header.csv,rel_reviewed_in.csv"\
+    --relationships=gives_review="rel_gives_review_header.csv,rel_gives_review.csv"\
     "$@"
+    # --relationships=reviews="rel_reviews_header.csv,rel_reviews.csv" \
