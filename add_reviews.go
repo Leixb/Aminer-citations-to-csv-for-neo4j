@@ -1,4 +1,4 @@
-package reviews
+package main
 
 import (
 	"encoding/csv"
