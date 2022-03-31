@@ -35,7 +35,7 @@ type Author struct {
     GID   string `json:"gid"`
 }
 
-type Article struct {
+type Paper struct {
 	ID         string   `json:"_id"`
 	Title      string   `json:"title"`
 	Authors    []Author `json:"authors"`
@@ -49,8 +49,8 @@ type Article struct {
 	Lang       string   `json:"lang"`
 	Volume     string   `json:"volume"`
 	Issue      string   `json:"issue"`
-	Issn       string   `json:"issn"`
-	Isbn       string   `json:"isbn"`
+	ISSN       string   `json:"issn"`
+	ISBN       string   `json:"isbn"`
 	Doi        string   `json:"doi"`
 	Pdf        string   `json:"pdf"`
 	Url        []string `json:"url"`
@@ -170,14 +170,14 @@ func process_venue(v *Venue, year int, volume, isbn *string, city_names []string
 
 }
 
-func GenerateFiles(filename, output, cities_file string) {
+func GenerateFiles(filename, output_folder, cities_file string) {
 
 	counter = 0
 	ids = make(map[string]string)
 	venue_type = make(map[string]VenueType)
 
-	if err := os.MkdirAll(output, 0755); err != nil {
-		log.Fatal("Output directory file creation failed on", output)
+	if err := os.MkdirAll(output_folder, 0755); err != nil {
+		log.Fatal("Output directory file creation failed on", output_folder)
 	}
 
 	f, err := os.Open(filename)
@@ -186,23 +186,23 @@ func GenerateFiles(filename, output, cities_file string) {
 	}
 	dec := json.NewDecoder(f)
 
-	f_articles := create_csv(output, "articles.csv")
-	f_authors := create_csv(output, "authors.csv")
-	f_conference := create_csv(output, "conference.csv")
-	f_edition := create_csv(output, "edition.csv")
-	f_journal := create_csv(output, "journal.csv")
-	f_keywords := create_csv(output, "keywords.csv")
-	f_volume := create_csv(output, "volume.csv")
-	f_workshop := create_csv(output, "workshop.csv")
-    f_university := create_csv(output, "university.csv")
-    f_company := create_csv(output, "company.csv")
+	f_articles := create_csv(output_folder, "articles.csv")
+	f_authors := create_csv(output_folder, "authors.csv")
+	f_conference := create_csv(output_folder, "conference.csv")
+	f_edition := create_csv(output_folder, "edition.csv")
+	f_journal := create_csv(output_folder, "journal.csv")
+	f_keywords := create_csv(output_folder, "keywords.csv")
+	f_volume := create_csv(output_folder, "volume.csv")
+	f_workshop := create_csv(output_folder, "workshop.csv")
+    f_university := create_csv(output_folder, "university.csv")
+    f_company := create_csv(output_folder, "company.csv")
 
-	rel_authored := create_csv(output, "rel_authored.csv")
-	rel_belongs := create_csv(output, "rel_belongs.csv")
-	rel_cites := create_csv(output, "rel_cites.csv")
-	rel_keywords := create_csv(output, "rel_keywords.csv")
-	rel_published := create_csv(output, "rel_published.csv")
-	rel_affiliated := create_csv(output, "rel_affiliated.csv")
+	rel_authored := create_csv(output_folder, "rel_authored.csv")
+	rel_belongs := create_csv(output_folder, "rel_belongs.csv")
+	rel_cites := create_csv(output_folder, "rel_cites.csv")
+	rel_keywords := create_csv(output_folder, "rel_keywords.csv")
+	rel_published := create_csv(output_folder, "rel_published.csv")
+	rel_affiliated := create_csv(output_folder, "rel_affiliated.csv")
 
 	for _, handle := range []*csv.Writer{
 		f_articles, f_authors, f_conference, f_edition, f_journal, f_keywords, f_volume, f_workshop, f_university, f_company,
@@ -242,15 +242,15 @@ func GenerateFiles(filename, output, cities_file string) {
 		default:
 		}
 
-		var a Article
+		var paper Paper
 		// decode an array value (Message)
-		err := dec.Decode(&a)
+		err := dec.Decode(&paper)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		art_id, _ := getId(a.ID)
-		for _, author := range a.Authors {
+		art_id, _ := getId(paper.ID)
+		for _, author := range paper.Authors {
 			if author.ID == "" {
 				continue
 			}
@@ -288,7 +288,7 @@ func GenerateFiles(filename, output, cities_file string) {
 			})
 		}
 
-		pub_id, ok := process_venue(&a.Venue, a.Year, &a.Volume, &a.Isbn, city_names,
+		pub_id, ok := process_venue(&paper.Venue, paper.Year, &paper.Volume, &paper.ISBN, city_names,
 			f_journal, f_conference, f_workshop,
 			f_edition, f_volume, rel_belongs,
 		)
@@ -296,7 +296,7 @@ func GenerateFiles(filename, output, cities_file string) {
 			rel_published.Write([]string{art_id, pub_id})
 		}
 
-		for _, keyword := range a.Keywords {
+		for _, keyword := range paper.Keywords {
 			if keyword == "" {
 				continue
 			}
@@ -307,7 +307,7 @@ func GenerateFiles(filename, output, cities_file string) {
 			rel_keywords.Write([]string{art_id, key_id})
 		}
 
-		for _, reference := range a.References {
+		for _, reference := range paper.References {
 			ref_id, _ := getId(reference)
             // Skip self references
             if ref_id == art_id {
@@ -318,10 +318,10 @@ func GenerateFiles(filename, output, cities_file string) {
 
 		f_articles.Write([]string{
 			art_id,
-			a.Title,
-			a.Abstract,
-			a.Doi,
-			strconv.Itoa(a.Year),
+			paper.Title,
+			paper.Abstract,
+			paper.Doi,
+			strconv.Itoa(paper.Year),
 		})
 	}
 }
