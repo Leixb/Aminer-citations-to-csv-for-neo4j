@@ -153,7 +153,7 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 				if author.Org != "" {
 					name, _, _ := strings.Cut(author.Org, ",")
 
-					orgid, done := getId(strings.ToLower(name))
+					orgid, done := getId(";" + strings.ToLower(name))
 					if !done {
 						if strings.HasPrefix(author.Org, "Uni") {
 							f_university.Write([]string{
@@ -230,7 +230,7 @@ func process_venue(v *Venue, year int, volume, isbn *string, city_names []string
 		v.Name = v.Raw
 	}
 
-	venue_id, done = getId(v.Name)
+	venue_id, done = getId("%" + v.Name)
 	if done { // Get venue type from map
 		venueType = venue_type[venue_id]
 	} else { // If venue does not exist, create it
