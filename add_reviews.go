@@ -72,31 +72,15 @@ func getReviewers(author_list []string, article_authors Set, n int) []string {
 
 // Adds fake reviews as a relationship. Making sure the reviewers are not
 // the paper authors.
-func AddReviewsEdge(input, output_folder string) {
-
-	article_authors, auth_list := getRelationships(input)
-
-	w := create_csv(output_folder, "rel_reviews.csv")
-	defer w.Flush()
-
-	for article := range article_authors {
-		// Add between 3 and 5 reviewers for each paper
-		n := 3 + rand.Intn(2)
-
-		for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
-			w.Write([]string{reviewer, article})
-		}
-	}
-}
-
-// Adds fake reviews as a relationship. Making sure the reviewers are not
-// the paper authors.
-func AddReviewsNode(input, output_folder string) {
+func AddReviews(input, output_folder string) {
 
 	article_authors, auth_list := getRelationships(input)
 
 	rel_gives_review := create_csv(output_folder, "rel_gives_review.csv")
 	defer rel_gives_review.Flush()
+
+	rel_reviews := create_csv(output_folder, "rel_reviews.csv")
+	defer rel_reviews.Flush()
 
 	rel_reviewed_in := create_csv(output_folder, "rel_reviewed_in.csv")
 	defer rel_reviewed_in.Flush()
@@ -123,6 +107,7 @@ func AddReviewsNode(input, output_folder string) {
 
 		for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
 			rel_gives_review.Write([]string{reviewer, rev_id})
+			rel_reviews.Write([]string{reviewer, article})
 		}
 	}
 }
