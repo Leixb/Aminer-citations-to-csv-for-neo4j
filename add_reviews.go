@@ -87,6 +87,7 @@ func AddReviews(input, output_folder string) {
 
 	reviews := create_csv(output_folder, "reviews.csv")
 	defer reviews.Flush()
+	reviews.Write([]string{"ID", "text", "approved"})
 
 	for article := range article_authors {
 		// Add between 3 and 5 reviewers for each paper
