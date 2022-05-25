@@ -76,28 +76,28 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 	dec := json.NewDecoder(f)
 
 	f_articles := create_csv(output_folder, "articles.csv")
-	f_articles.Write([]string{"ID", "Title", "DOI", "Year"})
+	f_articles.Write([]string{"ID", "title", "DOI", "year"})
 
 	f_authors := create_csv(output_folder, "authors.csv")
-	f_authors.Write([]string{"ID", "Name"})
+	f_authors.Write([]string{"ID", "pName"})
 
 	f_conference := create_csv(output_folder, "conference.csv")
-	f_conference.Write([]string{"ID", "Name"})
+	f_conference.Write([]string{"ID", "vTitle"})
 
 	f_edition := create_csv(output_folder, "edition.csv")
-	f_edition.Write([]string{"ID", "Year", "City"})
+	f_edition.Write([]string{"ID", "pubYear", "pubNumber"})
 
 	f_journal := create_csv(output_folder, "journal.csv")
-	f_journal.Write([]string{"ID", "Name"})
+	f_journal.Write([]string{"ID", "vTitle"})
 
 	f_area := create_csv(output_folder, "area.csv")
-	f_area.Write([]string{"ID", "Name"})
+	f_area.Write([]string{"ID", "aName"})
 
 	f_volume := create_csv(output_folder, "volume.csv")
-	f_volume.Write([]string{"ID", "Year", "Number", "ISBN"})
+	f_volume.Write([]string{"ID", "pubYear", "pubNumber", "ISBN"})
 
 	f_workshop := create_csv(output_folder, "workshop.csv")
-	f_workshop.Write([]string{"ID", "Name"})
+	f_workshop.Write([]string{"ID", "vTitle"})
 
 	f_university := create_csv(output_folder, "university.csv")
 	f_university.Write([]string{"ID", "Name"})
