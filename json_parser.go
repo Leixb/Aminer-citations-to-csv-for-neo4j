@@ -105,7 +105,7 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 	f_company := create_csv(output_folder, "company.csv")
 	f_company.Write([]string{"ID", "Name"})
 
-	rel_authored := create_csv(output_folder, "rel_authored.csv")
+	rel_writes := create_csv(output_folder, "rel_writes.csv")
 	rel_belongs := create_csv(output_folder, "rel_belongs.csv")
 	rel_cites := create_csv(output_folder, "rel_cites.csv")
 	rel_keywords := create_csv(output_folder, "rel_related.csv")
@@ -114,7 +114,7 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 
 	for _, handle := range []*csv.Writer{
 		f_articles, f_authors, f_conference, f_edition, f_journal, f_area, f_volume, f_workshop, f_university, f_company,
-		rel_authored, rel_belongs, rel_cites, rel_keywords, rel_published, rel_affiliated} {
+		rel_writes, rel_belongs, rel_cites, rel_keywords, rel_published, rel_affiliated} {
 		defer handle.Flush()
 	}
 
@@ -196,9 +196,9 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 					})
 				}
 			}
-			rel_authored.Write([]string{
-				art_id,
+			rel_writes.Write([]string{
 				auth_id,
+				art_id,
 			})
 		}
 

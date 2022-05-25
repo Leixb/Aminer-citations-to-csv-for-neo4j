@@ -74,6 +74,8 @@ func getReviewers(author_list []string, article_authors Set, n int) []string {
 // the paper authors.
 func AddReviews(input, output_folder string) {
 
+	rand.Seed(42)
+
 	article_authors, auth_list := getRelationships(input)
 
 	rel_gives_review := create_csv(output_folder, "rel_gives_review.csv")
@@ -82,8 +84,8 @@ func AddReviews(input, output_folder string) {
 	rel_reviews := create_csv(output_folder, "rel_reviews.csv")
 	defer rel_reviews.Flush()
 
-	rel_reviewed_in := create_csv(output_folder, "rel_reviewed_in.csv")
-	defer rel_reviewed_in.Flush()
+	rel_reviewed_about := create_csv(output_folder, "rel_review_about_paper.csv")
+	defer rel_reviewed_about.Flush()
 
 	reviews := create_csv(output_folder, "reviews.csv")
 	defer reviews.Flush()
@@ -104,7 +106,7 @@ func AddReviews(input, output_folder string) {
 		}
 
 		reviews.Write([]string{rev_id, "PLACEHOLDER TEXT", approved})
-		rel_reviewed_in.Write([]string{article, rev_id})
+		rel_reviewed_about.Write([]string{rev_id, article})
 
 		for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
 			rel_gives_review.Write([]string{reviewer, rev_id})
