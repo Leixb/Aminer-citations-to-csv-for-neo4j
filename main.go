@@ -23,12 +23,13 @@ import (
 
 func main() {
 	var filename, output_folder, cities_file string
-	var add_reviews bool
+	var add_reviews, add_venue_related bool
 
 	flag.StringVar(&filename, "input", "input.json", "JSON file with the data to convert")
 	flag.StringVar(&output_folder, "output-folder", "data", "Folder where all the csv files will be saved")
 	flag.StringVar(&cities_file, "cities", "cities.txt", "File containting all the cities to add")
 	flag.BoolVar(&add_reviews, "add-reviews", true, "Add fake review to the data")
+	flag.BoolVar(&add_venue_related, "add-venue-area", true, "Add fake venue relations to the data")
 	flag.Parse()
 
 	fmt.Println("Parsing JSON and generating CSV files into folder:", output_folder)
@@ -39,6 +40,13 @@ func main() {
 		fmt.Println("Adding fake review as nodes...")
 		AddReviews(
 			filepath.Join(output_folder, "rel_authored.csv"),
+			output_folder,
+		)
+	}
+
+	if add_venue_related {
+		fmt.Println("Adding fake venue relations as edges...")
+		AddVenueRelated(
 			output_folder,
 		)
 	}

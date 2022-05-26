@@ -12,6 +12,11 @@ func init() {
 	venue_type = make(map[string]VenueType)
 }
 
+func nextId() string {
+	counter++
+	return strconv.FormatUint(counter, 10)
+}
+
 // getId returns the ID of the given value. If the value does not exist, it is
 // assigned from counter and the counter is increased
 func getId(value string) (string, bool) {

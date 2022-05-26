@@ -5,7 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"strconv"
+	"path/filepath"
 )
 
 type Set map[string]bool
@@ -70,6 +70,36 @@ func getReviewers(author_list []string, article_authors Set, n int) []string {
 	return result
 }
 
+func getRelAsMap(filename string) map[string]string {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	reader := csv.NewReader(f)
+
+	reader.Comma = ';'
+
+	lines, err := reader.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rel := make(map[string]string)
+	for _, line := range lines {
+		rel[line[0]] = line[1]
+	}
+	return rel
+}
+
+// some random names
+var names = []string{ "John", "Paul", "George", "Ringo", "Pete", "James", "Amelia", "Olivia", "Emma", "Isabella", "Ava", "Sophia", "Charlotte", "Mia", "Lucy", "Grace", "Ruby", "Ella" }
+var surnames = []string{ "Smith", "Johnson", "Williams", "Jones", "Davis", "Miller", "Wilson", "Moore", "Taylor", "Anderson", "Jackson", "White", "Harris", "Martin", "Thompson" }
+
+func getRandomNameWithID() (string, string) {
+	name := names[rand.Intn(len(names))] + " " + surnames[rand.Intn(len(surnames))]
+	id, _ := getId("&&" + name)
+	return name, id
+}
+
 // Adds fake reviews as a relationship. Making sure the reviewers are not
 // the paper authors.
 func AddReviews(input, output_folder string) {
@@ -78,39 +108,80 @@ func AddReviews(input, output_folder string) {
 
 	article_authors, auth_list := getRelationships(input)
 
-	rel_gives_review := create_csv(output_folder, "rel_gives_review.csv")
-	defer rel_gives_review.Flush()
+	paperPublishedIn := getRelAsMap(filepath.Join(output_folder, "rel_published.csv"))
+	// publicationInVenue := getRelAsMap(filepath.Join(output_folder, "rel_belongs.csv"))
+	submittedTo := getRelAsMap(filepath.Join(output_folder, "rel_submittedTo.csv"))
 
-	rel_reviews := create_csv(output_folder, "rel_reviews.csv")
-	defer rel_reviews.Flush()
+	committees := create_csv(output_folder, "committees.csv")
+	committees.Write([]string{"ID"})
+	defer committees.Flush()
 
-	rel_reviewed_about := create_csv(output_folder, "rel_review_about_paper.csv")
-	defer rel_reviewed_about.Flush()
+	managers := create_csv(output_folder, "managers.csv")
+	managers.Write([]string{"ID", "pName"})
+	defer managers.Flush()
+
+	rel_handled_by := create_csv(output_folder, "rel_handled_by.csv")
+	defer rel_handled_by.Flush()
+
+	rel_assigns := create_csv(output_folder, "rel_assigns.csv")
+	defer rel_assigns.Flush()
+
+	rel_member_of := create_csv(output_folder, "rel_member_of.csv")
+	defer rel_member_of.Flush()
+
+	rel_approves := create_csv(output_folder, "rel_approves.csv")
+	defer rel_approves.Flush()
+
+	rel_rejects := create_csv(output_folder, "rel_rejects.csv")
+	defer rel_rejects.Flush()
+
+	rel_makes_review := create_csv(output_folder, "rel_makes_review.csv")
+	defer rel_makes_review.Flush()
 
 	reviews := create_csv(output_folder, "reviews.csv")
 	defer reviews.Flush()
-	reviews.Write([]string{"ID", "text", "accepted"})
+	reviews.Write([]string{"ID", "text"})
+
+	venueManagerMap := make(map[string]string)
 
 	for article := range article_authors {
+
+		committeeId := nextId()
+		committees.Write([]string{committeeId})
+
+		// If paper is in list of publications, it has been approved
+		_, approved := paperPublishedIn[article]
+		venueId := submittedTo[article]
+
+		if _, ok := venueManagerMap[venueId]; !ok {
+			manager, manager_id := getRandomNameWithID()
+			managers.Write([]string{manager_id, manager})
+			rel_handled_by.Write([]string{venueId, manager_id})
+
+			venueManagerMap[venueId] = manager_id
+		}
+
+		manager_id := venueManagerMap[venueId]
+
+		rel_assigns.Write([]string{manager_id, committeeId})
+
 		// Add between 3 and 5 reviewers for each paper
 		n := 3 + rand.Intn(2)
 
 		// create review node
-		counter++
-		rev_id := strconv.FormatUint(counter, 10)
+		rev_id := nextId()
 
-		// Set approved with 80% probability
-		approved := "true"
-		if rand.Float32() > 0.8 {
-			approved = "false"
+		if approved { //approved if in published list
+			rel_approves.Write([]string{rev_id, article})
+		} else { //rejected
+			rel_rejects.Write([]string{rev_id, article})
 		}
 
-		reviews.Write([]string{rev_id, "PLACEHOLDER TEXT", approved})
-		rel_reviewed_about.Write([]string{rev_id, article})
+		reviews.Write([]string{rev_id, "PLACEHOLDER TEXT"})
+		rel_makes_review.Write([]string{committeeId, rev_id})
 
 		for _, reviewer := range getReviewers(auth_list, article_authors[article], n) {
-			rel_gives_review.Write([]string{reviewer, rev_id})
-			rel_reviews.Write([]string{reviewer, article})
+			rel_member_of.Write([]string{reviewer, committeeId})
 		}
 	}
 }

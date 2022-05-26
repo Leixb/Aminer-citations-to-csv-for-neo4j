@@ -110,11 +110,12 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 	rel_cites := create_csv(output_folder, "rel_cites.csv")
 	rel_keywords := create_csv(output_folder, "rel_related.csv")
 	rel_published := create_csv(output_folder, "rel_published.csv")
+	rel_submittedTo := create_csv(output_folder, "rel_submittedTo.csv")
 	rel_affiliated := create_csv(output_folder, "rel_affiliated.csv")
 
 	for _, handle := range []*csv.Writer{
 		f_articles, f_authors, f_conference, f_edition, f_journal, f_area, f_volume, f_workshop, f_university, f_company,
-		rel_writes, rel_belongs, rel_cites, rel_keywords, rel_published, rel_affiliated} {
+		rel_writes, rel_belongs, rel_cites, rel_keywords, rel_published, rel_submittedTo, rel_affiliated} {
 		defer handle.Flush()
 	}
 
@@ -202,12 +203,16 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 			})
 		}
 
-		pub_id, ok := process_venue(&paper.Venue, paper.Year, &paper.Volume, &paper.ISBN, city_names,
+		venue_id, pub_id, ok := process_venue(&paper.Venue, paper.Year, &paper.Volume, &paper.ISBN, city_names,
 			f_journal, f_conference, f_workshop,
 			f_edition, f_volume, rel_belongs,
 		)
 		if ok {
-			rel_published.Write([]string{art_id, pub_id})
+			rel_submittedTo.Write([]string{art_id, venue_id})
+			// 20% of papers are not published (rejected)
+			if rand.Intn(100) >= 20 {
+				rel_published.Write([]string{art_id, pub_id})
+			}
 		}
 
 		for _, fos := range paper.Fos {
@@ -243,7 +248,7 @@ func GenerateFiles(filename, output_folder, cities_file string) {
 func process_venue(v *Venue, year int, volume, isbn *string, city_names []string,
 	f_journal, f_conference, f_workshop,
 	f_edition, f_volume, rel_belongs *csv.Writer,
-) (string, bool) {
+) (string, string, bool) {
 	// Make sure ID is valid
 	var done bool
 	var venue_id, pub_id string
@@ -315,6 +320,6 @@ func process_venue(v *Venue, year int, volume, isbn *string, city_names []string
 		})
 	}
 
-	return pub_id, true
+	return venue_id, pub_id, true
 
 }
